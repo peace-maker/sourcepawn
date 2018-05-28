@@ -1190,3 +1190,29 @@ SmxV1Image::LookupLineAddress(const uint32_t line, const char* filename, uint32_
   *addr = debug_lines_[index].addr;
   return true;
 }
+
+const char*
+SmxV1Image::GetDebugName(uint32_t nameoffs) const
+{
+  if (nameoffs >= debug_names_section_->size)
+    return nullptr;
+  return debug_names_ + nameoffs;
+}
+
+const char *
+SmxV1Image::GetTagName(uint32_t tag) const
+{
+  unsigned int index;
+  for (index = 0; index < tags_.length() && tags_[index].tag_id != tag; index++)
+    /* nothing */;
+  if (index >= tags_.length())
+    return nullptr;
+
+  return names_ + tags_[index].name;
+}
+
+SourcePawn::IDebugSymbolIterator*
+SmxV1Image::SymbolIterator(ucell_t addr) const
+{
+  return new SmxV1SymbolIterator(this, addr);
+}

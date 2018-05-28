@@ -674,3 +674,15 @@ PluginRuntime::UsesHeapScopes()
   auto features = image()->DescribeCode().features;
   return !!(features & SmxConsts::kCodeFeatureHeapScopes);
 }
+
+IDebugSymbolIterator*
+PluginRuntime::CreateSymbolIterator(ucell_t addr)
+{
+  return image_->SymbolIterator(addr);
+}
+
+void
+PluginRuntime::DestroySymbolIterator(IDebugSymbolIterator* iter)
+{
+  delete iter;
+}
