@@ -173,6 +173,7 @@ class SmxV1Image
     return false;
   }
   bool validateName(size_t offset);
+  bool validateDebugName(size_t offset);
   bool validateSection(const Section* section);
   bool validateRttiHeader(const Section* section);
   bool validateCode();
@@ -183,6 +184,10 @@ class SmxV1Image
   bool validateRtti();
   bool validateRttiMethods();
   bool validateDebugInfo();
+  template<typename SymbolType, typename DimType>
+  bool validateLegacyDebugSymbols();
+  bool validateDebugNatives();
+  bool validateTag(int16_t tagid);
   bool validateTags();
 
  private:

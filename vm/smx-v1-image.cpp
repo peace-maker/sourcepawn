@@ -8,6 +8,7 @@
 //   http://www.gnu.org/licenses/gpl.html
 //
 #include "smx-v1-image.h"
+#include <sp_vm_types.h>
 #include "zlib/zlib.h"
 #include <amtl/am-string.h>
 
@@ -174,6 +175,8 @@ SmxV1Image::validate()
   if (!validateDebugInfo())
     return false;
   if (!validateTags())
+    return false;
+  if (!validateDebugNatives())
     return false;
 
   return true;
@@ -349,7 +352,7 @@ SmxV1Image::validateNatives()
 
   for (size_t i = 0; i < length; i++) {
     if (!validateName(natives[i].name))
-      return error("invalid pubvar name");
+      return error("invalid native name");
   }
 
   natives_ = List<sp_file_natives_t>(natives, length);
@@ -360,6 +363,12 @@ bool
 SmxV1Image::validateName(size_t offset)
 {
   return offset < names_section_->size;
+}
+
+bool
+SmxV1Image::validateDebugName(size_t offset)
+{
+  return offset < debug_names_section_->size;
 }
 
 bool
@@ -494,13 +503,137 @@ SmxV1Image::validateDebugInfo()
     {
       debug_syms_unpacked_ =
         reinterpret_cast<const sp_u_fdbg_symbol_t*>(buffer() + debug_symbols_section_->dataoffs);
+      if (!validateLegacyDebugSymbols<sp_u_fdbg_symbol_t, sp_u_fdbg_arraydim_s>())
+        return false;
     } else {
       debug_syms_ =
         reinterpret_cast<const sp_fdbg_symbol_t*>(buffer() + debug_symbols_section_->dataoffs);
+      if (!validateLegacyDebugSymbols<sp_fdbg_symbol_t, sp_fdbg_arraydim_s>())
+        return false;
     }
   }
 
   return true;
+}
+
+template<typename SymbolType, typename DimType>
+bool
+SmxV1Image::validateLegacyDebugSymbols()
+{
+  const uint8_t* cursor = buffer() + debug_symbols_section_->dataoffs;
+  const uint8_t* cursor_end = cursor + debug_symbols_section_->size;
+  uint32_t count = 0;
+  while (cursor < cursor_end) {
+    if (cursor + sizeof(SymbolType) > cursor_end)
+      return error("truncated debug symbol table");
+
+    const SymbolType* sym = reinterpret_cast<const SymbolType*>(cursor);
+    if (!validateDebugName(sym->name))
+      return error("invalid debug symbol name");
+    if (sym->addr > (int32_t)code_.header()->size)
+      return error("invalid debug symbol address");
+    //if (sym->codestart > sym->codeend)
+    //  return error("invalid debug symbol code range");
+    //if (sym->codestart > code_.header()->size)
+    //  return error("invalid debug symbol code start");
+    if (sym->codeend > code_.header()->size)
+      return error("invalid debug symbol code end");
+    if (sym->dimcount > sDIMEN_MAX)
+      return error("invalid debug symbol dimension count");
+    if (sym->vclass > 2)
+      return error("invalid debug symbol vclass");
+    if ((sym->ident >> 4) > 0)
+      return error("invalid debug symbol ident");
+    if (!validateTag(sym->tagid))
+      return error("invalid debug symbol tag");
+
+    cursor += sizeof(SymbolType);
+    for (uint32_t j = 0; j < sym->dimcount; j++) {
+      if (cursor + sizeof(DimType) > cursor_end)
+        return error("truncated debug symbol table");
+
+      const DimType* dim = reinterpret_cast<const DimType*>(cursor);
+      if (!validateTag(dim->tagid))
+        return error("invalid debug symbol dimension tag");
+      cursor += sizeof(DimType);
+    }
+    count++;
+  }
+
+  if (count < debug_info_->num_syms)
+    return error("invalid debug symbol table");
+  return true;
+}
+
+bool
+SmxV1Image::validateDebugNatives()
+{
+  const Section* dbgnatives = findSection(".dbg.natives");
+  if (!dbgnatives)
+    return true;
+  if (!validateSection(dbgnatives))
+    return error("invalid .dbg.natives section");
+
+  const sp_fdbg_ntvtab_t* debug_natives_header =
+    reinterpret_cast<const sp_fdbg_ntvtab_t*>(buffer() + dbgnatives->dataoffs);
+
+  const uint8_t* cursor = buffer() + dbgnatives->dataoffs + sizeof(sp_fdbg_ntvtab_t);
+  const uint8_t* cursor_end = buffer() + dbgnatives->dataoffs + dbgnatives->size;
+  uint32_t count = 0;
+  while (cursor < cursor_end) {
+    if (cursor + sizeof(sp_fdbg_native_t) > cursor_end)
+      return error("truncated debug natives table");
+
+    const sp_fdbg_native_t* debug_native = reinterpret_cast<const sp_fdbg_native_t*>(cursor);
+    if (debug_native->index >= natives_.length())
+      return error("invalid debug native index");
+    if (!validateDebugName(debug_native->name))
+      return error("invalid debug native name");
+    if (!validateTag(debug_native->tagid))
+      return error("invalid debug native tag");
+
+    cursor += sizeof(sp_fdbg_native_t);
+    for (uint16_t i = 0; i < debug_native->nargs; i++) {
+      if (cursor + sizeof(sp_fdbg_ntvarg_t) > cursor_end)
+        return error("truncated debug natives table");
+
+      const sp_fdbg_ntvarg_t* arg = reinterpret_cast<const sp_fdbg_ntvarg_t*>(cursor);
+      if (!validateDebugName(arg->name))
+        return error("invalid debug native argument name");
+      if (arg->dimcount > sDIMEN_MAX)
+        return error("invalid debug native argument dimensions");
+      if ((arg->ident >> 4) > 0)
+        return error("invalid debug native argument ident");
+      if (!validateTag(arg->tagid))
+        return error("invalid debug native argument tag");
+
+      cursor += sizeof(sp_fdbg_ntvarg_t);
+      for (uint16_t j = 0; j < arg->dimcount; j++) {
+        if (cursor + sizeof(sp_fdbg_arraydim_t) > cursor_end)
+          return error("truncated debug natives table");
+        const sp_fdbg_arraydim_t* dim = reinterpret_cast<const sp_fdbg_arraydim_t*>(cursor);
+        if (!validateTag(dim->tagid))
+          return error("invalid debug natives argument dimension tag");
+        cursor += sizeof(sp_fdbg_arraydim_t);
+      }
+    }
+    count++;
+  }
+  if (count < debug_natives_header->num_entries)
+    return error("invalid debug natives table");
+  return true;
+}
+
+bool
+SmxV1Image::validateTag(int16_t tagid)
+{
+  if (!tags_.exists())
+    return true;
+
+  if (tagid < 0 || tagid >= (int16_t)tags_.length())
+    return false;
+
+  return (tags_[tagid].tag_id & ~0xFF000000) == tagid;
 }
 
 bool
