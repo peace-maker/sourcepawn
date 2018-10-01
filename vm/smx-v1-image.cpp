@@ -1212,7 +1212,9 @@ SmxV1Image::GetTagName(uint32_t tag) const
 }
 
 SourcePawn::IDebugSymbolIterator*
-SmxV1Image::SymbolIterator(ucell_t addr) const
+SmxV1Image::SymbolIterator(ucell_t addr)
 {
+  if (debug_symbols_section_)
+    return new SmxV1LegacySymbolIterator(this, addr);
   return new SmxV1SymbolIterator(this, addr);
 }

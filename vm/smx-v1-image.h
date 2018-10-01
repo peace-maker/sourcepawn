@@ -34,6 +34,7 @@ class SmxV1Image
     public LegacyImage
 {
  friend SmxV1SymbolIterator;
+ friend SmxV1LegacySymbolIterator;
  public:
   SmxV1Image(FILE* fp);
   SmxV1Image(uint8_t* addr, size_t length);
@@ -71,7 +72,7 @@ class SmxV1Image
   bool LookupLineAddress(const uint32_t line, const char* file, ucell_t* addr) const override;
   size_t NumFiles() const override;
   const char* GetFileName(size_t index) const override;
-  SourcePawn::IDebugSymbolIterator* SymbolIterator(ucell_t addr) const override;
+  SourcePawn::IDebugSymbolIterator* SymbolIterator(ucell_t addr) override;
   const char* GetTagName(uint32_t tagid) const;
   const char* GetDebugName(uint32_t nameoffs) const;
   bool HasRtti() const override;

@@ -59,7 +59,7 @@ class LegacyImage
   virtual bool LookupFunctionAddress(const char* function, const char* file, ucell_t *addr) const = 0;
   virtual bool LookupLineAddress(const uint32_t line, const char* file, ucell_t* addr) const = 0;
   virtual size_t NumFiles() const = 0;
-  virtual SourcePawn::IDebugSymbolIterator* SymbolIterator(ucell_t addr) const = 0;
+  virtual SourcePawn::IDebugSymbolIterator* SymbolIterator(ucell_t addr) = 0;
   virtual const char* GetFileName(size_t index) const = 0;
   virtual bool HasRtti() const = 0;
   virtual const smx_rtti_method* GetMethodRttiByOffset(uint32_t pcode_offset) const = 0;
@@ -149,7 +149,7 @@ class EmptyImage : public LegacyImage
   bool HasRtti() const override {
     return false;
   }
-  SourcePawn::IDebugSymbolIterator* SymbolIterator(ucell_t addr) const override {
+  SourcePawn::IDebugSymbolIterator* SymbolIterator(ucell_t addr) override {
     return nullptr;
   }
 
