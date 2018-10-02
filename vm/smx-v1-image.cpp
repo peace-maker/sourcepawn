@@ -699,12 +699,12 @@ SmxV1Image::validateDebugInfo()
     {
       debug_syms_unpacked_ =
         reinterpret_cast<const sp_u_fdbg_symbol_t*>(buffer() + debug_symbols_section_->dataoffs);
-      if (!validateLegacyDebugSymbols<sp_u_fdbg_symbol_t, sp_u_fdbg_arraydim_s>())
+      if (Environment::get()->IsDebugBreakEnabled() && !validateLegacyDebugSymbols<sp_u_fdbg_symbol_t, sp_u_fdbg_arraydim_s>())
         return false;
     } else {
       debug_syms_ =
         reinterpret_cast<const sp_fdbg_symbol_t*>(buffer() + debug_symbols_section_->dataoffs);
-      if (!validateLegacyDebugSymbols<sp_fdbg_symbol_t, sp_fdbg_arraydim_s>())
+      if (Environment::get()->IsDebugBreakEnabled() && !validateLegacyDebugSymbols<sp_fdbg_symbol_t, sp_fdbg_arraydim_s>())
         return false;
     }
   }
