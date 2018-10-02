@@ -699,9 +699,13 @@ SmxV1Image::validateDebugInfo()
     {
       debug_syms_unpacked_ =
         reinterpret_cast<const sp_u_fdbg_symbol_t*>(buffer() + debug_symbols_section_->dataoffs);
+      if (!validateLegacyDebugSymbols<sp_u_fdbg_symbol_t, sp_u_fdbg_arraydim_s>())
+        return false;
     } else {
       debug_syms_ =
         reinterpret_cast<const sp_fdbg_symbol_t*>(buffer() + debug_symbols_section_->dataoffs);
+      if (!validateLegacyDebugSymbols<sp_fdbg_symbol_t, sp_fdbg_arraydim_s>())
+        return false;
     }
   }
 
@@ -765,6 +769,73 @@ SmxV1Image::validateDebugMethods()
 }
 
 bool
+SmxV1Image::validateDebugName(size_t offset)
+{
+  return offset < debug_names_section_->size;
+}
+
+template<typename SymbolType, typename DimType>
+bool
+SmxV1Image::validateLegacyDebugSymbols()
+{
+  const uint8_t* cursor = buffer() + debug_symbols_section_->dataoffs;
+  const uint8_t* cursor_end = cursor + debug_symbols_section_->size;
+  uint32_t count = 0;
+  while (cursor < cursor_end) {
+    if (cursor + sizeof(SymbolType) > cursor_end)
+      return error("truncated debug symbol table");
+    const SymbolType* sym = reinterpret_cast<const SymbolType*>(cursor);
+    if (!validateDebugName(sym->name))
+      return error("invalid debug symbol name");
+    if (sym->vclass > VCLASS_MAX)
+      return error("invalid debug symbol vclass");
+    if (!validateLegacySymbolAddress(sym->addr, sym->vclass))
+      return error("invalid debug symbol address");
+    //if (sym->codestart > sym->codeend)
+    //  return error("invalid debug symbol code range");
+    //if (sym->codestart > code_.header()->size)
+    //  return error("invalid debug symbol code start");
+    if (sym->codeend > code_.header()->size)
+      return error("invalid debug symbol code end");
+    if (sym->dimcount > sDIMEN_MAX)
+      return error("invalid debug symbol dimension count");
+    if (sym->ident > IDENT_VARARGS)
+      return error("invalid debug symbol ident");
+    if (!validateTag(sym->tagid))
+      return error("invalid debug symbol tag");
+    cursor += sizeof(SymbolType);
+    for (uint32_t j = 0; j < sym->dimcount; j++) {
+      if (cursor + sizeof(DimType) > cursor_end)
+        return error("truncated debug symbol table");
+      const DimType* dim = reinterpret_cast<const DimType*>(cursor);
+      if (!validateTag(dim->tagid))
+        return error("invalid debug symbol dimension tag");
+      cursor += sizeof(DimType);
+    }
+    count++;
+  }
+  if (count < debug_info_->num_syms)
+    return error("invalid debug symbol table");
+  return true;
+}
+
+bool
+SmxV1Image::validateLegacySymbolAddress(int32_t address, uint8_t vclass)
+{
+  switch (vclass) {
+  case VCLASS_GLOBAL:
+  case VCLASS_STATIC:
+    if ((uint32_t)address >= code_.header()->size)
+      return false;
+    break;
+  case VCLASS_LOCAL:
+    // Can't validate relative stack offsets.
+    break;
+  }
+  return true;
+}
+
+bool
 SmxV1Image::validateTags()
 {
   const Section* section = findSection(".tags");
@@ -786,6 +857,16 @@ SmxV1Image::validateTags()
 
   tags_ = List<sp_file_tag_t>(tags, length);
   return true;
+}
+
+bool
+SmxV1Image::validateTag(int16_t tagid)
+{
+  if (!tags_.exists())
+    return true;
+  if (tagid < 0 || tagid >= (int16_t)tags_.length())
+    return false;
+  return (tags_[tagid].tag_id & ~0xFF000000) == tagid;
 }
 
 auto

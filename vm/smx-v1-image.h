@@ -220,7 +220,12 @@ class SmxV1Image
   bool validateDebugVariables(const smx_rtti_table_header* rtti_table);
   bool validateDebugMethods();
   bool validateSymbolAddress(int32_t address, uint8_t vclass);
+  bool validateDebugName(size_t offset);
+  template<typename SymbolType, typename DimType>
+  bool validateLegacyDebugSymbols();
+  bool validateLegacySymbolAddress(int32_t address, uint8_t vclass);
   bool validateTags();
+  bool validateTag(int16_t tagid);
 
  private:
   template <typename SymbolType, typename DimType>
