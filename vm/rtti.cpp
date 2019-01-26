@@ -327,6 +327,10 @@ RttiParser::validateTypeset()
 bool
 RttiParser::match(uint8_t b)
 {
+  // TODO: error on offset_ >= length_
+  if (offset_ >= length_)
+    return false;
+
   if (bytes_[offset_] != b)
     return false;
 
@@ -339,7 +343,7 @@ RttiParser::decodeUint32()
 {
   uint32_t value = 0;
   uint32_t shift = 0;
-  while (true) {
+  while (offset_ < length_) {
     uint8_t b = bytes_[offset_++];
     value |= (b & 0x7f) << shift;
     if ((b & 0x80) == 0)
