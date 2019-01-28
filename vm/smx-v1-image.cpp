@@ -1307,3 +1307,70 @@ SmxV1Image::SymbolIterator(ucell_t addr)
     return new SmxV1LegacySymbolIterator(this, addr);
   return new SmxV1SymbolIterator(this, addr);
 }
+
+const smx_rtti_classdef*
+SmxV1Image::GetRttiClassdef(uint32_t index) const
+{
+  if (!rtti_classdefs_)
+    return nullptr;
+  if (index >= rtti_classdefs_->row_count)
+    return nullptr;
+
+  return getRttiRow<smx_rtti_classdef>(rtti_classdefs_, index);
+}
+
+const smx_rtti_enum*
+SmxV1Image::GetRttiEnum(uint32_t index) const
+{
+  if (!rtti_enums_)
+    return nullptr;
+  if (index >= rtti_enums_->row_count)
+    return nullptr;
+
+  return getRttiRow<smx_rtti_enum>(rtti_enums_, index);
+}
+
+const smx_rtti_enumstruct*
+SmxV1Image::GetRttiEnumStruct(uint32_t index) const
+{
+  if (!rtti_enumstructs_)
+    return nullptr;
+  if (index >= rtti_enumstructs_->row_count)
+    return nullptr;
+
+  return getRttiRow<smx_rtti_enumstruct>(rtti_enumstructs_, index);
+}
+
+const smx_rtti_native*
+SmxV1Image::GetRttiNative(uint32_t index) const
+{
+  if (!rtti_natives_)
+    return nullptr;
+  if (index >= rtti_natives_->row_count)
+    return nullptr;
+
+  return getRttiRow<smx_rtti_native>(rtti_natives_, index);
+}
+
+const smx_rtti_typedef*
+SmxV1Image::GetRttiTypedef(uint32_t index) const
+{
+  if (!rtti_typedefs_)
+    return nullptr;
+  if (index >= rtti_typedefs_->row_count)
+    return nullptr;
+
+  return getRttiRow<smx_rtti_typedef>(rtti_typedefs_, index);
+}
+
+const smx_rtti_typeset*
+SmxV1Image::GetRttiTypeset(uint32_t index) const
+{
+  if (!rtti_typesets_)
+    return nullptr;
+  if (index >= rtti_typesets_->row_count)
+    return nullptr;
+
+  return getRttiRow<smx_rtti_typeset>(rtti_typesets_, index);
+}
+

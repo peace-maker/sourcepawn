@@ -79,6 +79,13 @@ class SmxV1Image
   bool HasRtti() const override;
   const smx_rtti_method* GetMethodRttiByOffset(uint32_t pcode_offset) const override;
 
+  const smx_rtti_classdef* GetRttiClassdef(uint32_t index) const;
+  const smx_rtti_enum* GetRttiEnum(uint32_t index) const;
+  const smx_rtti_enumstruct* GetRttiEnumStruct(uint32_t index) const;
+  const smx_rtti_native* GetRttiNative(uint32_t index) const;
+  const smx_rtti_typedef* GetRttiTypedef(uint32_t index) const;
+  const smx_rtti_typeset* GetRttiTypeset(uint32_t index) const;
+
  private:
   SmxV1Image();
 
