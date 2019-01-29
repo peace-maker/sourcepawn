@@ -299,6 +299,8 @@ RttiParser::validateFunction()
       return false;
     // A by_ref indicator is allowed here.
     match(cb::kConst);
+    if (offset_ >= length_)
+      return false;
     match(cb::kByRef);
     if (!validate())
       return false;
@@ -327,10 +329,6 @@ RttiParser::validateTypeset()
 bool
 RttiParser::match(uint8_t b)
 {
-  // TODO: error on offset_ >= length_
-  if (offset_ >= length_)
-    return false;
-
   if (bytes_[offset_] != b)
     return false;
 
