@@ -253,6 +253,7 @@ class Test(object):
     'returnCode',
     'type',
     'warnings_are_errors',
+    'debug_break_line',
   ])
 
   def __init__(self, **kwargs):
@@ -330,6 +331,10 @@ class Test(object):
   @property
   def force_new_parser(self):
     return self.checkManifests('force_new_parser') == 'true'
+
+  @property
+  def debug_break_line(self):
+    return self.local_manifest_.get('debug_break_line', None)
 
   @property
   def expectedReturnCode(self):
@@ -528,6 +533,8 @@ class TestRunner(object):
   def run_shell(self, mode, shell, test):
     self.out("Running with shell ({0})".format(shell['name']))
     argv = [shell['path']] + shell['args']
+    if test.debug_break_line:
+      argv += ['--debug-break-line', test.debug_break_line]
     argv += [self.fix_path(shell['path'], test.smx_path)]
 
     rc, stdout, stderr = self.do_exec(argv, shell['env'])
