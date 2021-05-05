@@ -7,6 +7,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         build_type: [optimize, debug]
         build_target: [x86, x64]
+        toolchain: [default]
         # The macos builder has min. XCode 10.3, so no x86 builds.
         exclude:
           - os: macos-latest
@@ -77,7 +78,7 @@ jobs:
           echo "CC=emcc" >> $GITHUB_ENV
           echo "CXX=em++" >> $GITHUB_ENV
           # The SDK no longer sets this envvar, but ambuild expects it.
-          echo "EMSCRIPTEN=$GITHUB_HOME/emsdk-cache/fastcomp/emscripten"
+          echo "EMSCRIPTEN=$EMSDK/fastcomp/emscripten" >> $GITHUB_ENV
 
       - name: Install Linux dependencies
         if: startsWith(runner.os, 'Linux') && matrix.build_target == 'x86'
