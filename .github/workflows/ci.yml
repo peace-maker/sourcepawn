@@ -25,6 +25,16 @@ jobs:
           - os: windows-latest
             build_type: debug
             build_target: arm64
+          # Test if compiling to javascript works.
+          - os: ubuntu-latest
+            build_type: optimize
+            build_target: x86
+            toolchain: emscripten
+          - os: ubuntu-latest
+            build_type: debug
+            build_target: x86
+            toolchain: emscripten
+
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
@@ -41,6 +51,18 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install git+https://github.com/alliedmodders/ambuild
 
+      # Optionally download emscripten SDK
+      - name: Setup emsdk
+        if: matrix.toolchain == 'emscripten'
+        uses: mymindstorm/setup-emsdk@v9
+        with:
+          # Make sure to set a version number!
+          version: latest
+          # This is the name of the cache folder.
+          # The cache folder will be placed in the build directory,
+          #  so make sure it doesn't conflict with anything!
+          actions-cache-folder: 'emsdk-cache'
+
       - name: Select clang compiler
         if: startsWith(runner.os, 'Linux') || startsWith(runner.os, 'macOS')
         run: |
@@ -48,6 +70,14 @@ jobs:
           echo "CXX=clang++" >> $GITHUB_ENV
           clang --version
           clang++ --version
+      
+      - name: Select emcc compiler
+        if: matrix.toolchain == 'emscripten'
+        run: |
+          echo "CC=emcc" >> $GITHUB_ENV
+          echo "CXX=em++" >> $GITHUB_ENV
+          # The SDK no longer sets this envvar, but ambuild expects it.
+          echo "EMSCRIPTEN=$GITHUB_HOME/emsdk-cache/fastcomp/emscripten"
 
       - name: Install Linux dependencies
         if: startsWith(runner.os, 'Linux') && matrix.build_target == 'x86'
