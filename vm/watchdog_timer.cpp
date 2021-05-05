@@ -20,6 +20,7 @@
 
 #ifdef __EMSCRIPTEN__
 #ifndef pthread_setname_np
+#include <emscripten/threading.h>
 extern "C" int pthread_setname_np(pthread_t thread, const char *name)
 {
   emscripten_set_thread_name(thread, name);
