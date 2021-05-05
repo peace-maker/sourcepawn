@@ -18,6 +18,16 @@
 
 #include <string.h>
 
+#ifdef __EMSCRIPTEN__
+#ifndef pthread_setname_np
+extern "C" int pthread_setname_np(pthread_t thread, const char *name)
+{
+  emscripten_set_thread_name(thread, name);
+  return 0;
+}
+#endif
+#endif
+
 #include <amtl/am-thread.h>
 #include "environment.h"
 
