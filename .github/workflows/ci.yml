@@ -7,7 +7,6 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         build_type: [optimize, debug]
         build_target: [x86, x64]
-        toolchain: [default]
         # The macos builder has min. XCode 10.3, so no x86 builds.
         exclude:
           - os: macos-latest
@@ -29,15 +28,23 @@ jobs:
           # Test if compiling to javascript works.
           - os: ubuntu-latest
             build_type: optimize
-            toolchain: emscripten
+            build_target: emscripten
           - os: ubuntu-latest
             build_type: debug
-            toolchain: emscripten
+            build_target: emscripten
+          
+          - os: ubuntu-latest:
+            os_short: linux
+          - os: windows-latest
+            os_short: win
+          - os: macos-latest
+            os_short: mac
 
       fail-fast: false
     env:
       TARGETS_ARG: --targets=${{ matrix.build_target }}
     runs-on: ${{ matrix.os }}
+    name: ${{ matrix.os_short }}-${{ matrix.build_target }} ${{ matrix.build_type }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -54,7 +61,7 @@ jobs:
 
       # Optionally download emscripten SDK
       - name: Setup emsdk
-        if: matrix.toolchain == 'emscripten'
+        if: matrix.build_target == 'emscripten'
         uses: mymindstorm/setup-emsdk@v9
         with:
           # Make sure to set a version number!
@@ -73,7 +80,7 @@ jobs:
           clang++ --version
       
       - name: Select emcc compiler
-        if: matrix.toolchain == 'emscripten'
+        if: matrix.build_target == 'emscripten'
         run: |
           echo "CC=emcc" >> $GITHUB_ENV
           echo "CXX=em++" >> $GITHUB_ENV
