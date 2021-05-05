@@ -29,11 +29,9 @@ jobs:
           # Test if compiling to javascript works.
           - os: ubuntu-latest
             build_type: optimize
-            build_target: x86
             toolchain: emscripten
           - os: ubuntu-latest
             build_type: debug
-            build_target: x86
             toolchain: emscripten
 
       fail-fast: false

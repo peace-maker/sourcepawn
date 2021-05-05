@@ -23,15 +23,10 @@ CodeStubs::InitializeFeatureDetection()
   return true;
 }
 
+#if defined(SP_HAS_JIT)
 bool
 CodeStubs::CompileInvokeStub()
 {
   return true;
 }
-
-SPVM_NATIVE_FUNC
-CodeStubs::CreateFakeNativeStub(SPVM_FAKENATIVE_FUNC callback, void* pData)
-{
-  assert(false);
-  return (SPVM_NATIVE_FUNC)nullptr;
-}
+#endif
