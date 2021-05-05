@@ -33,7 +33,7 @@ jobs:
             build_type: debug
             build_target: emscripten
           
-          - os: ubuntu-latest:
+          - os: ubuntu-latest
             os_short: linux
           - os: windows-latest
             os_short: win
