@@ -799,7 +799,7 @@ SmxV1Image::validateLegacyDebugSymbols()
     //  return error("invalid debug symbol code start");
     if (sym->codeend > code_.header()->size)
       return error("invalid debug symbol code end");
-    if (sym->dimcount > sDIMEN_MAX)
+    if (sym->dimcount > MAX_LEGACY_DIMENSIONS)
       return error("invalid debug symbol dimension count");
     if (!validateTag(sym->tagid))
       return error("invalid debug symbol tag");

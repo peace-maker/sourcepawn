@@ -420,7 +420,7 @@ void
 SmxV1SymbolType::guessLegacyType(const SmxV1Image* image, const SymbolType* sym)
 {
   // Save the dimension sizes first.
-  assert(sym->dimcount <= sDIMEN_MAX);
+  assert(sym->dimcount <= MAX_LEGACY_DIMENSIONS);
   assert(sym->dimcount == 0 || sym->ident == IDENT_ARRAY || sym->ident == IDENT_REFARRAY);
   const DimType* dim = (const DimType*)(sym + 1);
   for (int i = 0; i < sym->dimcount; i++) {

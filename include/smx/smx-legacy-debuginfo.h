@@ -59,6 +59,9 @@ static const uint32_t TAGTYPEMASK  = (FUNCTAG | OBJECTTAG | ENUMTAG | METHODMAPT
 static const uint32_t TAGFLAGMASK  = (FIXEDTAG | TAGTYPEMASK);
 #define TAGID(tag) ((tag) & ~(TAGFLAGMASK))
 
+// Maximum number of dimensions in pre-rtti plugins.
+#define MAX_LEGACY_DIMENSIONS 4
+
 // The ".dbg.symbols" table.
 typedef struct sp_fdbg_symbol_s {
     int32_t addr;       /**< Address rel to DAT or stack frame */
