@@ -13,6 +13,7 @@
 
 using namespace ke;
 using namespace sp;
+using namespace sp::debug;
 using namespace SourcePawn;
 
 // Handle RTTI .dbg.globals and .dbg.locals sections

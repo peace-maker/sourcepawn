@@ -16,14 +16,15 @@
 #include <sp_vm_debug_api.h>
 #include <smx/smx-legacy-debuginfo.h>
 #include <smx/smx-typeinfo.h>
+#include "rtti.h"
 
 using namespace SourcePawn;
 
 namespace sp {
   class SmxV1Image;
+namespace debug {
   class SmxV1DebugSymbol;
   class SmxV1SymbolType;
-  class Rtti;
 
   class SmxV1EnumStructField
     : public IEnumStructField
@@ -251,6 +252,7 @@ namespace sp {
     const uint8_t* cursor_;
     const uint8_t* cursor_end_;
   };
-}
+} // namespace debug
+} // namespace sp
 
 #endif // _include_sourcepawn_smxv1_debug_symbols_h_
