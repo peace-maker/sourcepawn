@@ -131,14 +131,14 @@ class TestPlan(object):
       if rc == 0 and 'JIT' in stdout:
         self.shells.append({
           'path': path,
-          'args': [],
+          'args': ['--validate-debug-sections'],
           'name': 'default-' + arch,
           'env': env,
           })
 
       self.shells.append({
         'path': path,
-        'args': ['--disable-jit'],
+        'args': ['--validate-debug-sections', '--disable-jit'],
         'name': 'interpreter-' + arch,
         'env': env,
       })
