@@ -743,7 +743,7 @@ SmxV1Image::validateSymbolAddress(int32_t address, uint8_t vclass, const sp::deb
   case kVarClass_Global:
   case kVarClass_Static:
     if ((uint32_t)address >= HeapSize() && !rtti_type->isConst())
-      return error(StringPrintf("invalid global variable address %x >= %x", address, HeapSize()).c_str());
+      return error(StringPrintf("invalid global variable address %x >= %zx", address, HeapSize()).c_str());
     break;
   case kVarClass_Local:
     if (address > 0 && !rtti_type->isConst())
